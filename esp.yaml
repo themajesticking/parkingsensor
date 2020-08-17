@@ -1,0 +1,36 @@
+sensor:
+  - platform: wifi_signal
+    name: "Attached Garage Sensor WiFi Signal"
+    update_interval: 60s
+  - platform: dht
+    pin: D7
+    temperature:
+      name: "Attached Garage Sensor Temperature"
+    humidity:
+      name: "Attached Garage Sensor Humidity"
+    update_interval: 60s
+    model: DHT22
+  - platform: ultrasonic
+    trigger_pin: D1
+    echo_pin: D2
+    update_interval: 1s
+    name: "Attached Garage Ultrasonic"
+    id: ultrasonic_id
+    filters:
+      filter_out: nan
+    timeout: 9m
+    on_value_range:
+      above: 0.5
+      below: 1.0
+      then:
+        - light.turn_on: parkingled
+
+light:
+  - platform: fastled_clockless
+    chipset: WS2812B
+    pin: GPIO12
+    num_leds: 21
+    rgb_order: GRB
+    name: "Attached Garage Parking LED"
+    restore_mode: ALWAYS_OFF
+    id: parkingled
