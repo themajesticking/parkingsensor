@@ -4,8 +4,8 @@ esphome:
   board: nodemcuv2
 
 wifi:
-  ssid: "xxxxxxxxxxxx"
-  password: "xxxxxxxx"
+  ssid: "xxxxxx"
+  password: "xxxxxx"
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
@@ -23,9 +23,9 @@ api:
 ota:
 
 mqtt:
-  broker: x.x.x.x
-  username: uid
-  password: pwd
+  broker: 192.168.0.156
+  username: DVES_USER
+  password: DVES_PWD
 
 binary_sensor:
  - platform: status
@@ -64,6 +64,9 @@ sensor:
              auto call = id(parkingled2).turn_on();
              call.set_rgb(0,1.0,0);
              call.perform();
+             delay(5);
+             id(parkingled2).turn_off();
+
             }
             else if ((id(car_sensor2).state >= 0.9) & (id(car_sensor2).state < 1.7)) {
              auto call = id(parkingled2).turn_on();
@@ -79,6 +82,9 @@ sensor:
              auto call = id(parkingled2).turn_on();
              call.set_rgb(1.0,0,0);
              call.perform();
+            }
+            else {
+              id(parkingled2).turn_off();
             }
              
   - platform: wifi_signal
