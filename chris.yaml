@@ -1,0 +1,109 @@
+esphome:
+  name: vehicle_sensor_2
+  platform: ESP8266
+  board: nodemcuv2
+
+wifi:
+  ssid: "xxxxxxxxxxxx"
+  password: "xxxxxxxx"
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Vehicle Sensor 2"
+    password: "x74ZsoR3JQYL"
+
+captive_portal:
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:
+
+mqtt:
+  broker: x.x.x.x
+  username: uid
+  password: pwd
+
+binary_sensor:
+ - platform: status
+   name: "Garage Vehicle Sensor 2 Status"
+   
+ - platform: template
+   name: "Chris Vehicle"
+   device_class: presence
+   lambda: |-
+     if ((id(car_sensor2).state < 1.2)){
+        // vehichle is in the garage
+        return true;
+     } else {
+         //no vehicle
+         return false;
+     }
+   
+sensor:
+  - platform: ultrasonic
+    id: car_sensor2
+    trigger_pin: D4
+    echo_pin: D3
+    update_interval: 1s
+    timeout: 4.0m
+    name: "Car Sensor 2"
+    filters:
+      filter_out: nan
+      
+    on_value:
+      then:
+        - lambda: |-
+            if ((id(car_sensor2).state >= 4.0)) {
+             id(parkingled2).turn_off();
+            }
+            else if ((id(car_sensor2).state >= 1.7) & (id(car_sensor2).state < 4.0)) {
+             auto call = id(parkingled2).turn_on();
+             call.set_rgb(0,1.0,0);
+             call.perform();
+            }
+            else if ((id(car_sensor2).state >= 0.9) & (id(car_sensor2).state < 1.7)) {
+             auto call = id(parkingled2).turn_on();
+             call.set_rgb(1.0,0.75,0);
+             call.perform();
+            }
+            else if ((id(car_sensor2).state >= 0.7) & (id(car_sensor2).state < 0.9)) {
+             auto call = id(parkingled2).turn_on();
+             call.set_rgb(0,0,1.0);
+             call.perform();
+            }
+            else if ((id(car_sensor2).state < 0.7)) {
+             auto call = id(parkingled2).turn_on();
+             call.set_rgb(1.0,0,0);
+             call.perform();
+            }
+             
+  - platform: wifi_signal
+    name: "Garage Vehicle Sensor 2 WiFi"
+    update_interval: 60s
+
+light:
+  - platform: fastled_clockless
+    chipset: WS2812B
+    pin: GPIO12
+    num_leds: 8
+    rgb_order: GRB
+    name: "Car Sensor 2 LED"
+    restore_mode: ALWAYS OFF
+    default_transition_length: 0s
+    id: parkingled2
+    effects:
+      - strobe:
+          name: Red Strobe
+          colors:
+            - state: True
+              brightness: 100%
+              red: 100%
+              green: 0%
+              blue: 0%
+              duration: 100ms
+            - state: False
+              duration: 100ms
