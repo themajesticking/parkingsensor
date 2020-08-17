@@ -18,7 +18,7 @@ sensor:
     id: ultrasonic_id
     filters:
       filter_out: nan
-#    timeout: 9m
+    timeout: 4m
     on_value_range:
       - below: 0.2
         then:
