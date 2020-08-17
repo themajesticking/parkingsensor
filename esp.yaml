@@ -20,6 +20,14 @@ sensor:
       filter_out: nan
 #    timeout: 9m
     on_value_range:
+      - below: 0.2
+        then:
+          - light.turn_on:
+              id: parkingled
+              brightness: 100%
+              red: 100%
+              green: 0%
+              blue: 0%
       - above: 0.2
         below: 0.3
         then:
@@ -28,14 +36,6 @@ sensor:
               brightness: 100%
               red: 100%
               green: 100%
-              blue: 0%
-      - below: 0.2
-        then:
-          - light.turn_on:
-              id: parkingled
-              brightness: 100%
-              red: 100%
-              green: 0%
               blue: 0%
       - above: 0.3
         below: 0.4
@@ -50,6 +50,11 @@ sensor:
         then:
           - light.turn_off:
               id: parkingled
+      - below: 0.1
+        then:
+          - light.turn_on:
+              id: parkingled
+              effect: "Red Strobe"
 
 light:
   - platform: fastled_clockless
@@ -61,3 +66,16 @@ light:
     restore_mode: ALWAYS_OFF
     default_transition_length: 0s
     id: parkingled
+    effects:
+      - strobe:
+      - strobe:
+          name: Red Strobe
+          colors:
+            - state: True
+              brightness: 100%
+              red: 100%
+              green: 0%
+              blue: 0%
+              duration: 100ms
+            - state: False
+              duration: 100ms
