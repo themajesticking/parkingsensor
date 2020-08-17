@@ -59,4 +59,5 @@ light:
     rgb_order: GRB
     name: "Attached Garage Parking LED"
     restore_mode: ALWAYS_OFF
+    default_transition_length: 0s
     id: parkingled
