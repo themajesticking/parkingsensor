@@ -1,3 +1,7 @@
+binary_sensor:
+  - platform: status
+    name: "Attached Garage Sensor Status"
+
 sensor:
   - platform: wifi_signal
     name: "Attached Garage Sensor WiFi Signal"
@@ -20,7 +24,13 @@ sensor:
       filter_out: nan
     timeout: 4m
     on_value_range:
-      - below: 0.2
+      - below: 0.1
+        then:
+          - light.turn_on:
+              id: parkingled
+              effect: "Red Strobe"      
+      - above: 0.1
+        below: 0.2
         then:
           - light.turn_on:
               id: parkingled
@@ -35,7 +45,7 @@ sensor:
               id: parkingled
               brightness: 100%
               red: 100%
-              green: 100%
+              green: 75%
               blue: 0%
       - above: 0.3
         below: 0.4
@@ -50,11 +60,6 @@ sensor:
         then:
           - light.turn_off:
               id: parkingled
-      - below: 0.1
-        then:
-          - light.turn_on:
-              id: parkingled
-              effect: "Red Strobe"
 
 light:
   - platform: fastled_clockless
