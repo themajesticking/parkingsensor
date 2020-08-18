@@ -1,11 +1,29 @@
 binary_sensor:
   - platform: status
     name: "Attached Garage Sensor Status"
+    
+  - platform: template
+    name: "Piper's Car"
+    device_class: presence
+    lambda: |-
+      if ((id(car_sensor).state < 1.1)){
+         // vehichle is in the garage
+         return true;
+      } else {
+         // no vehicle
+         return false;
+      }
+
+text_sensor:
+  - platform: homeassistant
+    entity_id: cover.attached_garage
+    id: status_attached_garage
 
 sensor:
   - platform: wifi_signal
     name: "Attached Garage Sensor WiFi Signal"
     update_interval: 60s
+
   - platform: dht
     pin: D7
     temperature:
@@ -14,54 +32,50 @@ sensor:
       name: "Attached Garage Sensor Humidity"
     update_interval: 60s
     model: DHT22
+
   - platform: ultrasonic
     trigger_pin: D1
     echo_pin: D2
     update_interval: 1s
-    name: "Attached Garage Ultrasonic"
-    id: ultrasonic_id
+    name: "Attached Garage Car Sensor"
+    id: car_sensor
     filters:
       filter_out: nan
-    timeout: 4m
-    on_value_range:
-      - below: 0.1
-        then:
-          - light.turn_on:
-              id: parkingled
-              effect: "Red Strobe"      
-      - above: 0.1
-        below: 0.2
-        then:
-          - light.turn_on:
-              id: parkingled
-              brightness: 100%
-              red: 100%
-              green: 0%
-              blue: 0%
-      - above: 0.2
-        below: 0.3
-        then:
-          - light.turn_on: 
-              id: parkingled
-              brightness: 100%
-              red: 100%
-              green: 75%
-              blue: 0%
-      - above: 0.3
-        below: 0.4
-        then:
-          - light.turn_on:
-              id: parkingled
-              brightness: 100%
-              red: 0%
-              green: 100%
-              blue: 0%
-      - above: 0.5
-        then:
-          - light.turn_off:
-              id: parkingled
+    timeout: 4.0m
+    
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(status_attached_garage).state == "open";'
+            then:
+              -  lambda: |-
+                   if ((id(car_sensor).state >= 1.0)) {
+                     id(parkingled).turn_off();
+                   }
+                   else if ((id(car_sensor).state >= 0.7) & (id(car_sensor).state < 1.0)) {
+                     auto call = id(parkingled).turn_on();
+                     call.set_rgb(0,1.0,0);
+                     call.perform();
+                   }
+                   else if ((id(car_sensor).state >= 0.5) & (id(car_sensor).state < 0.7)) {
+                     auto call = id(parkingled).turn_on();
+                     call.set_rgb(1.0,0.75,0);
+                     call.perform();
+                   }
+                   else if ((id(car_sensor).state >= 0.3) & (id(car_sensor).state < 0.5)) {
+                     auto call = id(parkingled).turn_on();
+                     call.set_rgb(0,0,1.0);
+                     call.perform();
+                   }
+                   else if ((id(car_sensor).state < 0.1)) {
+                     auto call = id(parkingled).turn_on();
+                     call.set_rgb(1.0,0,0);
+                     call.perform();
+                   }
 
 light:
+
   - platform: fastled_clockless
     chipset: WS2812B
     pin: GPIO12
