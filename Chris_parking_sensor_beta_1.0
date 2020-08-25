@@ -65,10 +65,11 @@ sensor:
               binary_sensor.is_on: doorsensor2
             then:
               - lambda: |-
-                  if ((id(car_sensor2).state >= 2.00)) {
-                    id(parkingled2).turn_off();
+                  if ((id(car_sensor2).state >= 1.70)) {
+                    auto call = id(parkingled2).turn_off();
+                    call.perform();
                   }
-                  else if ((id(car_sensor2).state >= 1.00) & (id(car_sensor2).state < 2.00)) {
+                  else if ((id(car_sensor2).state >= 1.00) & (id(car_sensor2).state < 1.70)) {
                     auto call = id(parkingled2).turn_on();
                     call.set_rgb(0,1.0,0);
                     call.perform();
@@ -97,6 +98,7 @@ sensor:
             then:
               - lambda: |-
                   auto call = id(parkingled2).turn_off();
+                  call.perform();
              
   - platform: wifi_signal
     name: "Garage Vehicle Sensor 2 WiFi"
