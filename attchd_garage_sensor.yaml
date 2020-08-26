@@ -77,7 +77,7 @@ sensor:
             then:
               - lambda: |-
                   if ((id(pipers_car_sensor).state >= 2.00)) {
-                    id(parkingled).turn_off();
+                    auto call = id(parkingled).turn_off();
                     call.perform();
                   }
                   else if ((id(pipers_car_sensor).state >= 1.00) & (id(pipers_car_sensor).state < 2.00)) {
@@ -101,7 +101,7 @@ sensor:
                     call.perform();
                   }
                   else {
-                  id(parkingled).turn_off();
+                  auto call = id(parkingled).turn_off();
                   call.perform();
                   }
         - if:
@@ -109,7 +109,7 @@ sensor:
               binary_sensor.is_off: attached_garage_door_sensor
             then:
               - lambda: |-
-                  id(parkingled).turn_off();
+                  auto call = id(parkingled).turn_off();
                   call.perform();
 
 light:
