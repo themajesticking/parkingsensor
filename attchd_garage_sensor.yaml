@@ -28,25 +28,25 @@ mqtt:
   password: !secret mqtt_pwd
 
 binary_sensor:
-  - platform: status
-    name: "Attached Garage Sensor Status"
+ - platform: status
+   name: "Attached Garage Sensor Status"
 
-  - platform: homeassistant
-    entity_id: cover.attached_garage
-    id: attached_garage_door_sensor
+ - platform: homeassistant
+   entity_id: cover.attached_garage
+   id: attached_garage_door_sensor
 
-  - platform: template
-    name: "Piper's Car"
-    device_class: presence
-    lambda: |-
-      if ((id(pipers_car_sensor).state < 1.2)){
-         // vehicle is in the garage
-         return true;
-      } else {
-          // no vehicle
-          return false;
-      }
-
+ - platform: template
+   name: "Piper's Car"
+   device_class: presence
+   lambda: |-
+     if ((id(pipers_car_sensor).state < 1.2)){
+        // vehicle is in the garage
+        return true;
+     } else {
+        // no vehicle
+        return false;
+     }
+ 
 sensor:
   - platform: wifi_signal
     name: "Attached Garage Sensor WiFi Signal"
@@ -67,9 +67,7 @@ sensor:
     update_interval: 0.5s
     name: "Attached Garage Car Sensor"
     id: pipers_car_sensor
-    filters:
-      filter_out: nan
-    timeout: 4.0m
+    timeout: 4m
 
     on_value:
       then:
@@ -80,6 +78,7 @@ sensor:
               - lambda: |-
                   if ((id(pipers_car_sensor).state >= 2.00)) {
                     id(parkingled).turn_off();
+                    call.perform();
                   }
                   else if ((id(pipers_car_sensor).state >= 1.00) & (id(pipers_car_sensor).state < 2.00)) {
                     auto call = id(parkingled).turn_on();
@@ -103,6 +102,7 @@ sensor:
                   }
                   else {
                   id(parkingled).turn_off();
+                  call.perform();
                   }
         - if:
             condition:
@@ -110,6 +110,7 @@ sensor:
             then:
               - lambda: |-
                   id(parkingled).turn_off();
+                  call.perform();
 
 light:
   - platform: fastled_clockless
