@@ -47,6 +47,17 @@ binary_sensor:
         return false;
      }
  
+ - platform: template
+   name: "Attached Garage Door"
+   device_class: opening
+   id: attachedgaragedoor
+   lambda: |-
+     if ((id(attached_garage_door_sensor).state == true)){
+        return true;
+     } else {
+        return false;
+     }
+ 
 sensor:
   - platform: wifi_signal
     name: "Attached Garage Sensor WiFi Signal"
@@ -73,7 +84,7 @@ sensor:
       then:
         - if:
             condition:
-              binary_sensor.is_on: attached_garage_door_sensor
+              binary_sensor.is_on: attachedgaragedoor
             then:
               - lambda: |-
                   if ((id(pipers_car_sensor).state >= 2.00)) {
@@ -106,7 +117,7 @@ sensor:
                   }
         - if:
             condition:
-              binary_sensor.is_off: attached_garage_door_sensor
+              binary_sensor.is_off: attachedgaragedoor
             then:
               - lambda: |-
                   auto call = id(parkingled).turn_off();
