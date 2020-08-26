@@ -1,0 +1,136 @@
+esphome:
+  name: attchd_garage_sensor
+  platform: ESP8266
+  board: nodemcuv2
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pwd
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Attached Garage Sensor"
+    password: !secret ap_pwd
+
+captive_portal:
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:
+
+mqtt:
+  broker: !secret broker_ip
+  username: !secret mqtt_user
+  password: !secret mqtt_pwd
+
+binary_sensor:
+  - platform: status
+    name: "Attached Garage Sensor Status"
+
+  - platform: homeassistant
+    entity_id: cover.attached_garage
+    id: attached_garage_door_sensor
+
+  - platform: template
+    name: "Piper's Car"
+    device_class: presence
+    lambda: |-
+      if ((id(pipers_car_sensor).state < 1.2)){
+         // vehicle is in the garage
+         return true;
+      } else {
+          // no vehicle
+          return false;
+      }
+
+sensor:
+  - platform: wifi_signal
+    name: "Attached Garage Sensor WiFi Signal"
+    update_interval: 60s
+
+  - platform: dht
+    pin: D7
+    temperature:
+      name: "Attached Garage Sensor Temperature"
+    humidity:
+      name: "Attached Garage Sensor Humidity"
+    update_interval: 60s
+    model: DHT22
+
+  - platform: ultrasonic
+    trigger_pin: D1
+    echo_pin: D2
+    update_interval: 0.5s
+    name: "Attached Garage Car Sensor"
+    id: pipers_car_sensor
+    filters:
+      filter_out: nan
+    timeout: 4.0m
+
+    on_value:
+      then:
+        - if:
+            condition:
+              binary_sensor.is_on: attached_garage_door_sensor
+            then:
+              - lambda: |-
+                  if ((id(pipers_car_sensor).state >= 2.00)) {
+                    id(parkingled).turn_off();
+                  }
+                  else if ((id(pipers_car_sensor).state >= 1.00) & (id(pipers_car_sensor).state < 2.00)) {
+                    auto call = id(parkingled).turn_on();
+                    call.set_rgb(0,1.0,0);
+                    call.perform();
+                  }
+                  else if ((id(pipers_car_sensor).state >= 0.28) & (id(pipers_car_sensor).state < 1.00)) {
+                    auto call = id(parkingled).turn_on();
+                    call.set_rgb(1.0,0.75,0);
+                    call.perform();
+                  }
+                  else if ((id(pipers_car_sensor).state >= 0.18) & (id(pipers_car_sensor).state < 0.28)) {
+                    auto call = id(parkingled).turn_on();
+                    call.set_rgb(0,0,1.0);
+                    call.perform();
+                  }
+                  else if ((id(pipers_car_sensor).state < 0.18)) {
+                    auto call = id(parkingled).turn_on();
+                    call.set_rgb(1.0,0,0);
+                    call.perform();
+                  }
+                  else {
+                  id(parkingled).turn_off();
+                  }
+        - if:
+            condition:
+              binary_sensor.is_off: attached_garage_door_sensor
+            then:
+              - lambda: |-
+                  id(parkingled).turn_off();
+
+light:
+  - platform: fastled_clockless
+    chipset: WS2812B
+    pin: GPIO12
+    num_leds: 21
+    rgb_order: GRB
+    name: "Attached Garage Parking LED"
+    restore_mode: ALWAYS_OFF
+    default_transition_length: 0s
+    id: parkingled
+    effects:
+      - strobe:
+      - strobe:
+          name: Red Strobe
+          colors:
+            - state: True
+              brightness: 100%
+              red: 100%
+              green: 0%
+              blue: 0%
+              duration: 100ms
+            - state: False
+              duration: 100ms
